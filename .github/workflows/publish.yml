@@ -1,4 +1,4 @@
-name:Qt v1.0 Release Build
+name:  Qt v1.0 Release Build
 
 on:
   push:
