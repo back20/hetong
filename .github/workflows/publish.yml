@@ -1,0 +1,46 @@
+name: C++ Qt Release Build
+
+on:
+  push:
+    tags:
+      - 'v*' # 当你提交代码并打上 v1.0, v2.0 这样的标签时，自动触发打包
+
+jobs:
+  windows-build:
+    runs-on: windows-latest # 使用 GitHub 官方提供的最新 Windows 纯净打包机
+
+    steps:
+    - name: 1. 拉取代码库
+      uses: actions/checkout@v3
+
+    - name: 2. 安装 Qt 编译固化环境
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.0'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64' # 采用微软商业级 C++ 编译器
+
+    - name: 3. 调动 MSVC 编译器进行 C++ 深度编译
+      run: |
+        chcp 65001
+        mkdir build
+        cd build
+        qmake ../CraneContractTool.pro
+        nmake
+
+    - name: 4. 固化提取依赖 (windeployqt 纯净粉碎缓存)
+      run: |
+        # 使用 Qt 官方的依赖提取工具，把所有必要的 .dll 动态链接库自动抓取到当前文件夹
+        windeployqt --release --no-translations build/release/CraneContractTool.exe
+
+    - name: 5. 压缩为纯净绿色版 Zip 包
+      run: |
+        Compress-Archive -Path build/release/* -DestinationPath CraneContractTool_Windows_x64.zip
+
+    - name: 6. 自动化同步发布到 GitHub Release 下载中心
+      uses: softprops/action-gh-release@v1
+      with:
+        files: CraneContractTool_Windows_x64.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
