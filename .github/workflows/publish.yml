@@ -1,9 +1,10 @@
-name: C++ Qt v1.0 Release Build
+name: Qt v1.0 Release Build
 
 on:
   push:
     tags:
-      - 'v1.*' # 明确锁定：当您提交 v1.0、v1.1 等以 v1. 开头的版本标签时，自动触发云端打包
+      - 'v1.*' # 自动触发：当您提交 v1.0、v1.1 等以 v1. 开头的版本标签时自动打包
+  workflow_dispatch: # 【新增】手动触发：允许您随时在 GitHub 网页端点击按钮手动运行打包
 
 jobs:
   windows-build:
@@ -46,6 +47,7 @@ jobs:
       with:
         files: CraneContractTool_v1.0_Windows.zip
         name: "Crane Contract Tool v1.0 正式稳定版"
+        tag_name: "v1.0-manual-${{ github.run_number }}" # 手动运行时自动生成带有运行编号的标签，防止覆盖旧版本
         body: |
           ### ⚖️ Crane Contract Tool v1.0 (C++ Core Engine)
           
