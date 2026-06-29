@@ -55,8 +55,8 @@ jobs:
           ### ⚖️ Crane Contract Tool v1.0 (C++ Core Engine)
           
           **更新日志：**
-          1. 修复了由于 Windows CMD 冲突导致的脚本解释器故障。
-          2. 修复了由于新版 MSVC 语法严苛度上升导致的 stdext 丢失错误。
-          3. 移除了不稳定的单文件编译模型，升级为解耦架构。
+          1. 采用高容错单文件架构，彻底杜绝多文件 copy 导致的遗漏报错。
+          2. 移除了 CMD 编译流程下的非法注释符，解决指令截断问题。
+          3. 锁定了 MSVC 下标准的 main.moc 联动编译方案。
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
