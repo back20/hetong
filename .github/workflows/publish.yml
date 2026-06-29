@@ -1,14 +1,14 @@
-name: Qt v1.0 Release Build
+name: C++ Qt v1.0 Release Build
 
 on:
   push:
     tags:
-      - 'v1.*' # 自动触发：当您提交 v1.0、v1.1 等以 v1. 开头的版本标签时自动打包
-  workflow_dispatch: # 手动触发：允许您随时在 GitHub 网页端点击按钮手动运行打包
+      - 'v1.*'
+  workflow_dispatch:
 
 jobs:
   windows-build:
-    runs-on: windows-latest # 调动 GitHub 官方最新的标准 Windows 64位纯净虚拟机
+    runs-on: windows-latest
 
     steps:
     - name: 1. 拉取代码仓库
@@ -22,21 +22,18 @@ jobs:
         target: 'desktop'
         arch: 'win64_msvc2019_64'
 
-    # 【核心修复】新增步骤：激活微软 MSVC 强力原生 C++ 编译环境环境变量
     - name: 3. 激活微软 MSVC 开发者命令行环境
       uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: x64 # 锁定 64 位架构编译
+        arch: x64
 
     - name: 4. 执行 MOC 预处理与 C++ 深度编译
-      shell: cmd # 【核心修复】切换为 cmd 运行，防止 PowerShell 拦截或误报传统 C++ 编译流
+      shell: cmd
       run: |
         chcp 65001
         mkdir build
         cd build
-        # 激活 Qt 核心元对象编译器，防止 main.cpp.moc 报找不到的错误
         qmake ../CraneContractTool.pro CONFIG+=release
-        # 此时已经成功激活环境，nmake 将被精准识别并开启高能编译
         nmake
 
     - name: 5. 提取 .dll 依赖项并进行无损固化
@@ -46,7 +43,6 @@ jobs:
 
     - name: 6. 封包压缩为绿色即用版 Zip 压缩包
       run: |
-        # 压缩使用 PowerShell 比较稳定，保留默认 shell
         Compress-Archive -Path build/release/* -DestinationPath CraneContractTool_v1.0_Windows.zip
 
     - name: 7. 自动同步发布到 GitHub Release 下载中心
@@ -58,9 +54,9 @@ jobs:
         body: |
           ### ⚖️ Crane Contract Tool v1.0 (C++ Core Engine)
           
-          **更新日志与合规固化说明：**
-          1. **完全移除了 Python 依赖**：全案采用 C++ 与 Qt6 底层架构重构，启动速度提升 10 倍，内存占用极低。
-          2. **法务条款深度防护**：纠正了历史版本中的文字和管辖地漏洞，自动规避高额违约金法律风险。
-          3. **绿色纯净版**：解压即用，自动在本地建立和管理 JSON 财税历史库。
+          **更新日志：**
+          1. 修复了由于 Windows CMD 冲突导致的脚本解释器故障。
+          2. 修复了由于新版 MSVC 语法严苛度上升导致的 stdext 丢失错误。
+          3. 移除了不稳定的单文件编译模型，升级为解耦架构。
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
