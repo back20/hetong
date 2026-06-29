@@ -1,4 +1,4 @@
-name:  Qt v1.0 Release Build
+name: Qt v1.0 Release Build
 
 on:
   push:
@@ -17,37 +17,44 @@ jobs:
     - name: 2. 安装与配置 Qt6 商业级编译固化环境
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.5.3' # 【核心修复】将 6.5.0 升级为更稳定的 6.5.3，彻底避开损坏的镜像数据包
+        version: '6.5.3'
         host: 'windows'
         target: 'desktop'
-        arch: 'win64_msvc2019_64' # 采用微软 MSVC 全套 C++ 核心编译器
+        arch: 'win64_msvc2019_64'
 
-    - name: 3. 执行 MOC 预处理与 C++ 深度编译
+    # 【核心修复】新增步骤：激活微软 MSVC 强力原生 C++ 编译环境环境变量
+    - name: 3. 激活微软 MSVC 开发者命令行环境
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64 # 锁定 64 位架构编译
+
+    - name: 4. 执行 MOC 预处理与 C++ 深度编译
+      shell: cmd # 【核心修复】切换为 cmd 运行，防止 PowerShell 拦截或误报传统 C++ 编译流
       run: |
         chcp 65001
         mkdir build
         cd build
         # 激活 Qt 核心元对象编译器，防止 main.cpp.moc 报找不到的错误
         qmake ../CraneContractTool.pro CONFIG+=release
-        # 使用微软强力原生 NMAKE 进行多线程并行编译
+        # 此时已经成功激活环境，nmake 将被精准识别并开启高能编译
         nmake
 
-    - name: 4. 提取 .dll 依赖项并进行无损固化
+    - name: 5. 提取 .dll 依赖项并进行无损固化
+      shell: cmd
       run: |
-        #自动调用 Qt 官方的 windeployqt 工具，把程序运行所需的所有底层 C++ 动态链接库（.dll）自动抓取齐全
         windeployqt --release --no-translations build/release/CraneContractTool.exe
 
-    - name: 5. 封包压缩为绿色即用版 Zip 压缩包
+    - name: 6. 封包压缩为绿色即用版 Zip 压缩包
       run: |
-        # 将编译出来的 exe 和抓取到的 dll 统一打包，命名为 CraneContractTool_v1.0_Windows.zip
+        # 压缩使用 PowerShell 比较稳定，保留默认 shell
         Compress-Archive -Path build/release/* -DestinationPath CraneContractTool_v1.0_Windows.zip
 
-    - name: 6. 自动同步发布到 GitHub Release 下载中心
+    - name: 7. 自动同步发布到 GitHub Release 下载中心
       uses: softprops/action-gh-release@v1
       with:
         files: CraneContractTool_v1.0_Windows.zip
         name: "Crane Contract Tool v1.0 正式稳定版"
-        tag_name: "v1.0-build-${{ github.run_number }}" # 每次打包生成带有独立编号的标签
+        tag_name: "v1.0-build-${{ github.run_number }}"
         body: |
           ### ⚖️ Crane Contract Tool v1.0 (C++ Core Engine)
           
