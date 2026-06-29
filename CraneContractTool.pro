@@ -1,19 +1,16 @@
 QT       += core gui widgets
+CONFIG   += c++17
 
-CONFIG += c++17
+SOURCES += main.cpp \
+           mainwindow.cpp
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+HEADERS += mainwindow.h
 
-SOURCES += \
-    main.cpp
-
-# Target executable name
-TARGET = CraneContractTool
+TARGET   = CraneContractTool
 TEMPLATE = app
 
-# Windows specific deployment settings
-win32 {
+win32-msvc {
     CONFIG += release
+    # 核心修复：强行放宽新版 MSVC 编译器的非标审查，挽回 stdext，彻底修复 qvarlengtharray.h 报错
+    QMAKE_CXXFLAGS += /permissive
 }
